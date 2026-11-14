@@ -1,0 +1,487 @@
+/* Cycle Tracker — all classes prefixed with `ct-`. Uses Obsidian CSS variables for light/dark themes. */
+
+.ct-view {
+	--ct-flow-color: hsl(350 60% 55%);
+	padding: var(--size-4-4, 16px);
+}
+
+/* Two-panel layout: calendar ~60% | dashboard ~40%. */
+.ct-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+	gap: var(--size-4-4, 16px);
+	align-items: start;
+}
+
+/* Toggled by a ResizeObserver on the pane (not a viewport media query). */
+.ct-layout.ct-stacked {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.ct-panel {
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m, 8px);
+	padding: var(--size-4-4, 16px);
+	min-width: 0;
+}
+
+.ct-panel h3 {
+	margin-top: 0;
+}
+
+/* Narrow panes and phones: tighter spacing so 7 columns still fit comfortably. */
+.ct-view.ct-narrow {
+	padding: var(--size-4-2, 8px);
+}
+
+.ct-narrow .ct-layout {
+	gap: var(--size-4-2, 8px);
+}
+
+.ct-narrow .ct-panel {
+	padding: var(--size-4-2, 8px);
+}
+
+.ct-narrow .ct-cal-grid {
+	gap: 2px;
+}
+
+.ct-narrow .ct-cal-title {
+	font-size: var(--font-ui-medium);
+}
+
+.ct-narrow .ct-legend {
+	gap: 6px 12px;
+}
+
+.ct-placeholder {
+	color: var(--text-muted);
+}
+
+.ct-disclaimer {
+	margin-top: var(--size-4-4, 16px);
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+}
+
+/* ---------- Calendar ---------- */
+
+.ct-calendar {
+	--ct-flow-heavy: color-mix(in srgb, var(--ct-flow-color) 95%, transparent);
+	--ct-flow-medium: color-mix(in srgb, var(--ct-flow-color) 65%, transparent);
+	--ct-flow-light: color-mix(in srgb, var(--ct-flow-color) 35%, transparent);
+}
+
+.ct-cal-header {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2, 8px);
+	margin-bottom: var(--size-4-3, 12px);
+}
+
+.ct-cal-title {
+	flex: 1;
+	text-align: center;
+	font-size: var(--font-ui-large);
+	font-weight: var(--font-semibold);
+}
+
+.ct-cal-grid {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 4px;
+}
+
+.ct-cal-weekday {
+	text-align: center;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	padding-bottom: 4px;
+}
+
+/* Reset Obsidian's default button look for cells. */
+button.ct-cal-day {
+	all: unset;
+	box-sizing: border-box;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 2px;
+	aspect-ratio: 1 / 1;
+	min-height: 2.25em;
+	border-radius: var(--radius-s, 6px);
+	cursor: pointer;
+	color: var(--text-normal);
+	background: transparent;
+	border: 1px solid transparent;
+	font-size: var(--font-ui-small);
+}
+
+button.ct-cal-day:hover {
+	background: var(--background-modifier-hover);
+}
+
+button.ct-cal-day:focus-visible {
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: 1px;
+}
+
+.ct-cal-day.ct-outside {
+	opacity: 0.4;
+}
+
+.ct-cal-day.ct-today .ct-day-number {
+	font-weight: var(--font-bold, 700);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-thickness: 2px;
+}
+
+/* Logged flow: solid fill, intensity by opacity. */
+button.ct-cal-day.ct-flow-heavy {
+	background: var(--ct-flow-heavy);
+	color: var(--text-on-accent, #fff);
+}
+
+button.ct-cal-day.ct-flow-medium {
+	background: var(--ct-flow-medium);
+}
+
+button.ct-cal-day.ct-flow-light {
+	background: var(--ct-flow-light);
+}
+
+button.ct-cal-day.ct-flow-heavy:hover,
+button.ct-cal-day.ct-flow-medium:hover,
+button.ct-cal-day.ct-flow-light:hover {
+	filter: brightness(1.08);
+}
+
+/* Spotting: thin border + small dot. */
+button.ct-cal-day.ct-flow-spotting {
+	border-color: var(--ct-flow-color);
+	border-style: dotted;
+}
+
+/* Predictions (only drawn for today and later). Background priority:
+   logged flow > predicted period (outline only) > ovulation > fertile. */
+.ct-calendar {
+	--ct-fertile-fill: color-mix(in srgb, var(--interactive-accent) 16%, transparent);
+	--ct-ovulation-ring: var(--interactive-accent);
+}
+
+/* Logged flow keeps its fill even on a predicted fertile day. */
+button.ct-cal-day.ct-fertile:not(.ct-flow-heavy):not(.ct-flow-medium):not(.ct-flow-light) {
+	background: var(--ct-fertile-fill);
+}
+
+/* Past (retrospective) estimates: same hue, fainter, dashed ring. */
+.ct-calendar {
+	--ct-past-fertile-fill: color-mix(in srgb, var(--interactive-accent) 8%, transparent);
+}
+
+button.ct-cal-day.ct-past-fertile:not(.ct-flow-heavy):not(.ct-flow-medium):not(.ct-flow-light) {
+	background: var(--ct-past-fertile-fill);
+}
+
+button.ct-cal-day.ct-past-ovulation {
+	outline: 1.5px dashed var(--ct-ovulation-ring);
+	outline-offset: -3px;
+}
+
+.ct-legend-swatch.ct-past-fertile {
+	background: var(--ct-past-fertile-fill);
+	border: 1px solid var(--background-modifier-border);
+}
+
+.ct-legend-swatch.ct-past-ovulation {
+	outline: 1.5px dashed var(--ct-ovulation-ring);
+	outline-offset: -3px;
+}
+
+button.ct-cal-day.ct-ovulation {
+	box-shadow: inset 0 0 0 2px var(--ct-ovulation-ring);
+}
+
+button.ct-cal-day.ct-predicted-period {
+	border: 1.5px dashed var(--ct-flow-color);
+}
+
+button.ct-cal-day.ct-flow-heavy,
+button.ct-cal-day.ct-flow-medium,
+button.ct-cal-day.ct-flow-light {
+	border-style: solid;
+	border-color: transparent;
+}
+
+.ct-legend-swatch.ct-predicted-period {
+	border: 1.5px dashed var(--ct-flow-color);
+}
+
+.ct-legend-swatch.ct-fertile {
+	background: var(--ct-fertile-fill);
+}
+
+.ct-legend-swatch.ct-ovulation {
+	box-shadow: inset 0 0 0 2px var(--ct-ovulation-ring);
+}
+
+.ct-day-marks {
+	display: flex;
+	gap: 3px;
+	height: 5px;
+}
+
+.ct-mark {
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+}
+
+.ct-mark-spotting {
+	background: var(--ct-flow-color);
+}
+
+.ct-mark-symptoms {
+	background: var(--text-muted);
+}
+
+.ct-flow-heavy .ct-mark-symptoms {
+	background: currentColor;
+}
+
+/* Legend */
+.ct-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--size-4-2, 8px) var(--size-4-4, 16px);
+	margin-top: var(--size-4-3, 12px);
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+}
+
+.ct-legend-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.ct-legend-swatch {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	border-radius: 3px;
+	border: 1px solid transparent;
+}
+
+.ct-legend-swatch.ct-flow-heavy {
+	background: var(--ct-flow-heavy);
+}
+
+.ct-legend-swatch.ct-flow-medium {
+	background: var(--ct-flow-medium);
+}
+
+.ct-legend-swatch.ct-flow-light {
+	background: var(--ct-flow-light);
+}
+
+.ct-legend-swatch.ct-flow-spotting {
+	border: 1px dotted var(--ct-flow-color);
+}
+
+.ct-legend-swatch.ct-swatch-symptoms {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--text-muted);
+	margin: 0 3px;
+}
+
+/* ---------- Dashboard ---------- */
+
+.ct-dashboard {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-4-3, 12px);
+}
+
+.ct-card {
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m, 8px);
+	padding: var(--size-4-3, 12px) var(--size-4-4, 16px);
+}
+
+.ct-card-title {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	margin-bottom: 2px;
+}
+
+.ct-card-main {
+	font-size: var(--font-ui-medium);
+	color: var(--text-normal);
+}
+
+.ct-card-main strong {
+	font-size: 1.6em;
+	font-weight: var(--font-bold, 700);
+	line-height: 1.2;
+}
+
+.ct-card-sub {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	margin-top: 2px;
+}
+
+.ct-card-period {
+	border-left: 3px solid var(--ct-flow-color);
+}
+
+.ct-card-fertile {
+	border-left: 3px solid var(--interactive-accent);
+}
+
+.ct-card-late .ct-card-main strong {
+	color: var(--ct-flow-color);
+}
+
+.ct-card-empty button {
+	margin-top: var(--size-4-3, 12px);
+}
+
+.ct-confidence {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	background: var(--background-modifier-hover);
+	border-radius: var(--radius-s, 6px);
+	padding: 6px 10px;
+}
+
+.ct-dashboard .ct-disclaimer {
+	margin-top: var(--size-4-2, 8px);
+}
+
+/* ---------- Day modal ---------- */
+
+.ct-day-modal h4 {
+	margin: var(--size-4-4, 16px) 0 var(--size-4-2, 8px);
+	font-size: var(--font-ui-small);
+	color: var(--text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.ct-segmented {
+	display: flex;
+	flex-wrap: wrap;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m, 8px);
+	overflow: hidden;
+}
+
+.ct-segmented button.ct-seg {
+	flex: 1 1 auto;
+	border-radius: 0;
+	box-shadow: none;
+	border: none;
+	border-right: 1px solid var(--background-modifier-border);
+	background: var(--background-primary);
+}
+
+.ct-segmented button.ct-seg:last-child {
+	border-right: none;
+}
+
+.ct-segmented button.ct-seg.is-active {
+	background: var(--ct-flow-color, hsl(350 60% 55%));
+	color: var(--text-on-accent, #fff);
+}
+
+.ct-segmented button.ct-seg-none.is-active {
+	background: var(--interactive-accent);
+}
+
+.ct-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.ct-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 10px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 999px;
+	cursor: pointer;
+	font-size: var(--font-ui-small);
+	user-select: none;
+}
+
+.ct-chip input {
+	margin: 0;
+}
+
+.ct-chip.is-checked {
+	background: var(--background-modifier-hover);
+	border-color: var(--interactive-accent);
+}
+
+.ct-chip-unknown {
+	font-style: italic;
+}
+
+.ct-note {
+	width: 100%;
+	resize: vertical;
+}
+
+.ct-modal-buttons {
+	display: flex;
+	gap: var(--size-4-2, 8px);
+	margin-top: var(--size-4-4, 16px);
+}
+
+.ct-spacer {
+	flex: 1;
+}
+
+.ct-error {
+	border-left: 3px solid var(--text-error);
+	padding-left: var(--size-4-3, 12px);
+}
+
+.ct-error h3 {
+	color: var(--text-error);
+}
+
+/* Settings tab */
+.ct-number-input {
+	width: 5em;
+}
+
+.ct-symptom-textarea {
+	width: 100%;
+	min-width: 16em;
+}
+
+.ct-color-swatch {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 50%;
+	border: 1px solid var(--background-modifier-border);
+	flex-shrink: 0;
+}
+
+.ct-invalid {
+	border-color: var(--text-error) !important;
+}
