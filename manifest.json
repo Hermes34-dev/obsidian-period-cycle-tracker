@@ -2,7 +2,7 @@
 	"id": "cycle-tracker",
 	"name": "Cycle Tracker",
 	"version": "0.1.0",
-	"minAppVersion": "1.5.0",
+	"minAppVersion": "1.5.1",
 	"description": "Private, local-first period and cycle tracker with predictions.",
 	"author": "Hermes34-dev",
 	"isDesktopOnly": false
