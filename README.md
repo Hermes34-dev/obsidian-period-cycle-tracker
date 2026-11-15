@@ -6,6 +6,8 @@ Click a day on the calendar to log flow, symptoms and a note. Cycle Tracker pred
 
 > **Cycle Tracker provides estimates only. It is not a medical device and must not be used for contraception.**
 
+![Cycle Tracker calendar and dashboard](assets/calendar-dashboard.png)
+
 ## Features
 
 - **Calendar:** month view with your logged flow (heavy / medium / light, plus spotting), symptoms and notes. It also shows predicted periods, the fertile window and ovulation.
@@ -34,6 +36,8 @@ Click a day on the calendar to log flow, symptoms and a note. Cycle Tracker pred
 | **Open cycle log file** | Opens the Markdown file that stores your data (creates it if needed). |
 
 ### The day editor
+
+<img src="assets/day-editor.png" alt="The day editor with flow, symptoms and a note" width="450">
 
 - **Flow:** None · Spotting · Light · Medium · Heavy.
 - **Symptoms:** pick from your list (edit it in settings). Symptoms that are no longer in your list stay on old entries and show in *italics*.
